@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hx-k12-editor"
+version = "0.1.0"
+description = "Open, cross-platform editor for the HX-K12 / Romoral macro pad (onboard macros)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+# Core library + CLI need no third-party deps on Linux (uses hidraw directly).
+dependencies = []
+
+[project.optional-dependencies]
+# Graphical editor
+gui = ["PyQt6>=6.5"]
+# Cross-platform HID backend, required on Windows/macOS (Linux can use hidraw)
+hid = ["hidapi>=0.14"]
+# Everything
+all = ["PyQt6>=6.5", "hidapi>=0.14"]
+
+[project.scripts]
+hx-k12 = "hxk12.cli:main"
+
+[project.gui-scripts]
+hx-k12-editor = "hxk12.gui.app:run"
+
+[tool.setuptools.packages.find]
+include = ["hxk12*"]

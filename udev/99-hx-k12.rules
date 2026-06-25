@@ -1,0 +1,8 @@
+# HX-K12 / Romoral macro pad (USB 1189:8840)
+# Grant local users read/write to the raw HID nodes so the editor (and the OEM
+# app under Wine) can reach the vendor config interface. MODE=0666 is applied by
+# udev on every (re-)enumeration, which is robust even when the pad resets and
+# comes back as a new device number; TAG+="uaccess" additionally hands the
+# active-session user an ACL where logind honours it.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1189", ATTRS{idProduct}=="8840", MODE="0666", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1189", ATTRS{idProduct}=="8840", MODE="0666", TAG+="uaccess"
