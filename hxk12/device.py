@@ -14,8 +14,16 @@ vendor-defined usage page ``0xFF00``. See PROTOCOL.md.
 import glob
 import os
 import sys
+import time
 
 from . import protocol
+
+# These cheap pads need a moment to actually burn the new layout into their
+# nonvolatile flash. Without a pause between reports, and a settle after the
+# commit (before we close the USB handle), the keys take effect immediately but
+# are lost on the next power cycle (unplug/replug). See flash_layout.
+WRITE_GAP = 0.004      # seconds between key reports, so the pad keeps up
+COMMIT_SETTLE = 0.10   # seconds after the commit, so flash finishes before close
 
 
 class DeviceNotFound(Exception):
@@ -180,7 +188,9 @@ class Device:
         """Write a single KeyConfig and optionally commit to flash."""
         self.write(cfg.encode_report())
         if commit:
+            time.sleep(WRITE_GAP)
             self.write(protocol.flash_report())
+            time.sleep(COMMIT_SETTLE)        # let the pad persist before close
 
     def flash_layout(self, configs, progress=None):
         """Write a whole layout, then a single flash-commit.
@@ -189,14 +199,21 @@ class Device:
         ``AA AA`` commit. Writing the full set (rather than one key) preserves
         the other keys. ``configs`` is an iterable of KeyConfig.
         ``progress`` (optional) is called as ``progress(done, total)``.
+
+        Small pauses matter: the pad needs time to take each report and then to
+        burn the result into flash. If we fire everything at once and close the
+        handle the instant after the commit, the new keys work until the pad
+        loses power and then revert. The gaps below avoid that.
         """
         configs = list(configs)
         total = len(configs)
         for i, cfg in enumerate(configs, 1):
             self.write(cfg.encode_report())
+            time.sleep(WRITE_GAP)
             if progress:
                 progress(i, total)
         self.write(protocol.flash_report())
+        time.sleep(COMMIT_SETTLE)             # let the pad persist before close
 
 
 def available():

@@ -1,0 +1,10 @@
+
+[all]
+PyQt6>=6.5
+hidapi>=0.14
+
+[gui]
+PyQt6>=6.5
+
+[hid]
+hidapi>=0.14

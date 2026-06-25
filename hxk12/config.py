@@ -6,6 +6,7 @@ flashing and to a short human label for the UI tiles.
 """
 
 import json
+import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
@@ -192,3 +193,36 @@ class Profile:
     def load(cls, path: str) -> "Profile":
         with open(path, "r", encoding="utf-8") as f:
             return cls.from_dict(json.load(f))
+
+
+# --- "last layout" autosave ----------------------------------------------
+# The pad has no read-back command, so the editor can't ask the device what it
+# holds. Instead we mirror the in-editor layout to a file and reload it on the
+# next launch, which is how the OEM tool effectively behaves too.
+
+def _state_dir() -> str:
+    base = os.environ.get("XDG_CONFIG_HOME") or \
+        os.path.join(os.path.expanduser("~"), ".config")
+    return os.path.join(base, "hxk12")
+
+
+def autosave_path() -> str:
+    return os.path.join(_state_dir(), "last.json")
+
+
+def autosave_profile(profile: "Profile") -> None:
+    """Quietly persist the current layout. Best-effort: never raises."""
+    try:
+        os.makedirs(_state_dir(), exist_ok=True)
+        profile.save(autosave_path())
+    except OSError:
+        pass
+
+
+def load_autosave() -> Optional["Profile"]:
+    """Return the last autosaved profile, or None if missing/unreadable."""
+    try:
+        return Profile.load(autosave_path())
+    except Exception:
+        # Missing, corrupt, or from an incompatible version: start fresh.
+        return None

@@ -16,6 +16,9 @@ _SPECIAL = {
     Qt.Key.Key_Backslash: 'backslash', Qt.Key.Key_Semicolon: 'semicolon',
     Qt.Key.Key_Apostrophe: 'quote', Qt.Key.Key_QuoteLeft: 'grave',
     Qt.Key.Key_Comma: 'comma', Qt.Key.Key_Period: 'dot', Qt.Key.Key_Slash: 'slash',
+    # ISO 102nd key ('< > |' between Left-Shift and Z). On a Nordic/German
+    # layout the unshifted key reports as Key_Less and shift gives Key_Greater.
+    Qt.Key.Key_Less: 'nonusbackslash', Qt.Key.Key_Greater: 'nonusbackslash',
     Qt.Key.Key_CapsLock: 'capslock', Qt.Key.Key_Print: 'printscreen',
     Qt.Key.Key_ScrollLock: 'scrolllock', Qt.Key.Key_Pause: 'pause',
     Qt.Key.Key_Insert: 'insert', Qt.Key.Key_Home: 'home', Qt.Key.Key_PageUp: 'pageup',

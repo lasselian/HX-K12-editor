@@ -2,14 +2,14 @@
 
 import os
 
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal
 from PyQt6.QtWidgets import (
     QComboBox, QFileDialog, QFrame, QGridLayout, QHBoxLayout, QLabel,
     QMainWindow, QMenu, QMessageBox, QPushButton, QScrollArea, QVBoxLayout,
     QWidget,
 )
 
-from .. import device
+from .. import config, device
 from ..config import Profile
 from ..layout import DEFAULT_LAYOUT
 from . import theme
@@ -43,7 +43,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.app = app
         self.layout_def = layout
-        self.profile = Profile.blank(layout)
+        # Reopen with the last layout the user worked on; fall back to blank.
+        saved = config.load_autosave()
+        self.profile = saved if (saved and saved.layers) else Profile.blank(layout)
         self.current_layer = 1
         self.current_path = None
         self._theme_override = dark          # None = follow system
@@ -71,6 +73,13 @@ class MainWindow(QMainWindow):
         self.apply_theme(self.dark)
         self.app.styleHints().colorSchemeChanged.connect(self._on_system_scheme)
         self._watch_portal_theme()
+
+        # Keep the connection pill live: poll so unplug/replug is reflected
+        # without the user having to click it.
+        self._status_timer = QTimer(self)
+        self._status_timer.setInterval(1000)
+        self._status_timer.timeout.connect(self.refresh_status)
+        self._status_timer.start()
 
     # ---- header ----------------------------------------------------------
     def _build_header(self):
@@ -189,6 +198,7 @@ class MainWindow(QMainWindow):
             action = dlg.result_action()
             layer.set(slot, action)
             self._tiles[slot].set_action(layer.get(slot), theme.palette(self.dark)["text"])
+            self._autosave()
 
     def _caption_for(self, slot):
         for k in self.layout_def.keys:
@@ -208,11 +218,16 @@ class MainWindow(QMainWindow):
         self._populate_tiles()
 
     # ---- actions ---------------------------------------------------------
+    def _autosave(self):
+        """Mirror the current layout to disk so the next launch reopens with it."""
+        config.autosave_profile(self.profile)
+
     def on_new(self):
         self.profile = Profile.blank(self.layout_def)
         self.current_path = None
         self._reload_layers()
         self._populate_tiles()
+        self._autosave()
 
     def on_open(self):
         path, _ = QFileDialog.getOpenFileName(
@@ -227,6 +242,7 @@ class MainWindow(QMainWindow):
         self.current_path = path
         self._reload_layers()
         self._populate_tiles()
+        self._autosave()
 
     def on_save(self):
         path, _ = QFileDialog.getSaveFileName(
@@ -244,6 +260,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Save failed", str(e))
             return
         self.current_path = path
+        self._autosave()
         self.statusBar().showMessage(f"Saved {path}", 4000)
 
     def _reload_layers(self):
@@ -273,6 +290,7 @@ class MainWindow(QMainWindow):
         self.flash_btn.setEnabled(True)
         self.flash_btn.setText("Flash to keyboard")
         if ok:
+            self._autosave()
             self.statusBar().showMessage(message, 5000)
             QMessageBox.information(self, "Done", message)
         else:

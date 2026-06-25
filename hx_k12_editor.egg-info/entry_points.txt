@@ -1,0 +1,5 @@
+[console_scripts]
+hx-k12 = hxk12.cli:main
+
+[gui_scripts]
+hx-k12-editor = hxk12.gui.app:run

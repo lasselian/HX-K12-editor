@@ -44,6 +44,17 @@ KEYS = {
     "delete": 0x4C, "del": 0x4C, "end": 0x4D, "pagedown": 0x4E,
     "right": 0x4F, "left": 0x50, "down": 0x51, "up": 0x52,
     "menu": 0x65,
+    # ISO 102nd key: the key between Left-Shift and Z on European keyboards,
+    # printed "< > |". On a Nordic/German layout this is what types '<'. There
+    # is no equivalent on US-ANSI, where '<' is Shift+comma instead.
+    "nonusbackslash": 0x64, "iso": 0x64, "102nd": 0x64, "intl": 0x64,
+    # Literal punctuation, so you can type the symbol itself instead of a name.
+    # These are the *unshifted* key positions; prefix 'shift+' for the shifted
+    # symbol (e.g. 'shift+<' -> '>'). Positions follow US-ANSI, except '<' which
+    # maps to the ISO 102nd key above.
+    "<": 0x64,
+    ",": 0x36, ".": 0x37, "/": 0x38, ";": 0x33, "'": 0x34, "`": 0x35,
+    "-": 0x2D, "=": 0x2E, "[": 0x2F, "]": 0x30, "\\": 0x31,
 }
 
 # --- Media / consumer control --------------------------------------------

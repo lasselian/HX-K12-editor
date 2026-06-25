@@ -10,7 +10,9 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from hxk12 import config as config_mod
 from hxk12.config import (Action, KIND_KEYS, KIND_MEDIA, KIND_NONE, Profile)
+from hxk12.keycodes import parse_combo
 from hxk12.layout import DEFAULT_LAYOUT
 from hxk12.protocol import KeyConfig, flash_report
 
@@ -88,6 +90,53 @@ class TestConfig(unittest.TestCase):
         p = Profile.blank(DEFAULT_LAYOUT)
         cfgs = p.keyconfigs_for_layer(DEFAULT_LAYOUT, 1)
         self.assertEqual(len(cfgs), len(DEFAULT_LAYOUT.all_slots))
+
+
+class TestKeycodes(unittest.TestCase):
+    def test_literal_symbols(self):
+        # '<' is the ISO 102nd key (0x64); ',' is the comma key (0x36)
+        self.assertEqual(parse_combo("alt+<"), (0x04, 0x64))
+        self.assertEqual(parse_combo("shift+<"), (0x02, 0x64))
+        self.assertEqual(parse_combo("alt+,"), (0x04, 0x36))
+
+    def test_nonus_aliases_agree(self):
+        self.assertEqual(parse_combo("<"), parse_combo("nonusbackslash"))
+
+
+class TestAutosave(unittest.TestCase):
+    def test_roundtrip_and_missing(self):
+        with tempfile.TemporaryDirectory() as d:
+            old = os.environ.get("XDG_CONFIG_HOME")
+            os.environ["XDG_CONFIG_HOME"] = d
+            try:
+                # nothing saved yet
+                self.assertIsNone(config_mod.load_autosave())
+                p = Profile.blank(DEFAULT_LAYOUT)
+                p.layer(1).set(1, Action(kind=KIND_MEDIA, media="mute"))
+                config_mod.autosave_profile(p)
+                loaded = config_mod.load_autosave()
+                self.assertIsNotNone(loaded)
+                self.assertEqual(loaded.layer(1).get(1).summary(), "Mute")
+            finally:
+                if old is None:
+                    os.environ.pop("XDG_CONFIG_HOME", None)
+                else:
+                    os.environ["XDG_CONFIG_HOME"] = old
+
+    def test_corrupt_file_returns_none(self):
+        with tempfile.TemporaryDirectory() as d:
+            old = os.environ.get("XDG_CONFIG_HOME")
+            os.environ["XDG_CONFIG_HOME"] = d
+            try:
+                os.makedirs(os.path.join(d, "hxk12"))
+                with open(config_mod.autosave_path(), "w") as f:
+                    f.write("{ not valid json")
+                self.assertIsNone(config_mod.load_autosave())
+            finally:
+                if old is None:
+                    os.environ.pop("XDG_CONFIG_HOME", None)
+                else:
+                    os.environ["XDG_CONFIG_HOME"] = old
 
 
 if __name__ == "__main__":

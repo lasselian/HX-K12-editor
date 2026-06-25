@@ -1,3 +1,18 @@
+Metadata-Version: 2.4
+Name: hx-k12-editor
+Version: 0.1.0
+Summary: Open, cross-platform editor for the HX-K12 / Romoral macro pad (onboard macros)
+License: MIT
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Provides-Extra: gui
+Requires-Dist: PyQt6>=6.5; extra == "gui"
+Provides-Extra: hid
+Requires-Dist: hidapi>=0.14; extra == "hid"
+Provides-Extra: all
+Requires-Dist: PyQt6>=6.5; extra == "all"
+Requires-Dist: hidapi>=0.14; extra == "all"
+
 # HX-K12 Editor
 
 A free, cross-platform app for programming the HX-K12 / Romoral macro pad (the
