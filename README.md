@@ -1,5 +1,8 @@
 # HX-K12 Editor
 
+<img width="802" height="700" alt="image" src="https://github.com/user-attachments/assets/2dfb4d24-fb9b-41a2-8241-00437cffa889" />
+
+
 A free, cross-platform app for programming the HX-K12 / Romoral macro pad (the
 little USB keypad with `1189:8840` on it). It replaces the clunky Windows-only
 "MINI KeyBoard" software that comes with the pad.
